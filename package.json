@@ -1,0 +1,15 @@
+{
+  "name": "umik-read-app",
+  "version": "1.0.0",
+  "description": "Demonstrate find and use UMIK to record audio to a file.",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Frankie Fong",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^13.1.6"
+  }
+}
