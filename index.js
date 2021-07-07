@@ -53,9 +53,11 @@ console.log(portAudio.getDevices());
 
 const { ipcMain } = require('electron');
 const fs = require('fs');
+const { time } = require('console');
 
 let ofStream = null;
 let aiStream = null;
+let recStartTimeStamp = -1;
 
 ipcMain.on('start-record', () => {
   console.log("Starting recording...");
@@ -100,6 +102,17 @@ function openMicToRecordToFile(outfilePath)
       }
     });
     if (aiStream) {
+      aiStream.on('data', (buf) => {
+        console.log(`${buf.timestamp}: ${buf.length} audio data read`);
+        if (recStartTimeStamp < 0) {
+          recStartTimeStamp = buf.timestamp;
+          browserWin.webContents.send('state-changed', 'Recording');
+        }
+        else {
+          const elapsedTime = buf.timestamp - recStartTimeStamp;
+          browserWin.webContents.send('duration-changed', elapsedTime);
+        }
+      })
       aiStream.on('error', (err) => {
         console.log(`Audio Input Stream Error: ${err}`);
         // close-on-error is set
@@ -110,6 +123,7 @@ function openMicToRecordToFile(outfilePath)
       });
     }
     aiStream.pipe(ofStream);
+    recStartTimeStamp = -1;
     aiStream.start();
   }
   else {

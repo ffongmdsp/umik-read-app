@@ -36,6 +36,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     ipcRenderer.on('duration-changed', (event, newDuration) => {
-      document.getElementById('duration_val').innerText = duration;
+      document.getElementById('duration_val').innerText = newDuration;
     });
   
