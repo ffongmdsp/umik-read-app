@@ -3,6 +3,7 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
+let browserWin = null;
 
 function createWindow () {
   // Create the browser window.
@@ -19,6 +20,8 @@ function createWindow () {
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
+
+  browserWin = mainWindow;
 }
 
 // This method will be called when Electron has finished
@@ -38,8 +41,78 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', function () {
+  browserWin = null;
   if (process.platform !== 'darwin') app.quit()
 })
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+var portAudio = require('naudiodon');
+
+console.log(portAudio.getDevices());
+
+const { ipcMain } = require('electron');
+const fs = require('fs');
+
+let ofStream = null;
+let aiStream = null;
+
+ipcMain.on('start-record', () => {
+  console.log("Starting recording...");
+  openMicToRecordToFile('./umik_data.raw');
+});
+
+ipcMain.on('stop-record', () => {
+  console.log("Stopping recording...");
+  aiStream.quit();
+});
+
+
+function openMicToRecordToFile(outfilePath)
+{
+  let audioDevices = portAudio.getDevices();
+  // find UMIK
+  let umik = audioDevices.find( (ad) => (ad.name.includes('UMIK')));
+
+  if (umik) {
+    console.log("UMIK found: ", umik);
+    ofStream = fs.createWriteStream(outfilePath, {
+      flags: 'w',  
+    });
+    ofStream.on('finish', () => {
+      console.log('ofstream is ended');
+      // destroy it
+      ofStream.destroy();
+    });
+    ofStream.on('close', () => {
+      console.log('ofstream is closed');
+      ofStream = null;
+      browserWin.webContents.send('state-changed', 'Stopped');
+    });
+
+    aiStream = new portAudio.AudioIO({
+      inOptions: {
+        channelCount: umik.maxInputChannels >= 2? 2 : 1,
+        sampleFormat: portAudio.SampleFormat16Bit,
+        sampleRate: 48000,
+        deviceId: umik.id,
+        closeOnError: true
+      }
+    });
+    if (aiStream) {
+      aiStream.on('error', (err) => {
+        console.log(`Audio Input Stream Error: ${err}`);
+        // close-on-error is set
+      });
+      aiStream.on('close', () => {
+        console.log(`Audio Input Stream closed`);
+        aiStream = null;
+      });
+    }
+    aiStream.pipe(ofStream);
+    aiStream.start();
+  }
+  else {
+    console.error('Cannot find UMIK');
+  }
+}

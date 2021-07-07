@@ -6,8 +6,9 @@
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline' 'self'">
     <title>Hello World!</title>
+    <link rel="stylesheet" href="./common.css">
   </head>
   <body>
     <h1>Hello World!</h1>
@@ -15,6 +16,10 @@
     Chromium <span id="chrome-version"></span>,
     and Electron <span id="electron-version"></span>.
 
+    <hr>
+    <div><span id="duration_val">0</span> secs</div>
+    <div>Status: <span id="state_val">Idle</span></div>
+    <button id="start_button">Start Recording</button><button id="stop_button" disabled>Stop Recording</button>
     <!-- You can also require other files to run in this process -->
     <script src="./renderer.js"></script>
   </body>

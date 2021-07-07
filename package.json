@@ -10,6 +10,10 @@
   "author": "Frankie Fong",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^13.1.6"
+    "electron": "^13.1.6",
+    "electron-rebuild": "^2.3.5"
+  },
+  "dependencies": {
+    "naudiodon": "^2.3.5"
   }
 }
